@@ -4,15 +4,14 @@
 """
 Description : A python script for uploading videos 
 to YouTube using Googl's Youtube Data v3 API
-
 Modified for python3 by : Senthil Manikandan 
   <senthilmanikandan360@gmail.com>
  
 Create your Oauth2 access token at 
   'Google console developers'
-
 """
 # ===============================
+
 import http.client
 import httplib2
 import os
@@ -83,7 +82,6 @@ https://developers.google.com/api-client-library/python/guide/aaa_client_secrets
 
 VALID_PRIVACY_STATUSES = ("public", "private", "unlisted")
 
-
 def get_authenticated_service(args):
   flow = flow_from_clientsecrets(CLIENT_SECRETS_FILE,
     scope=YOUTUBE_UPLOAD_SCOPE,
@@ -148,6 +146,12 @@ def resumable_upload(insert_request):
       if response is not None:
         if 'id' in response:
           print("Video id '%s' was successfully uploaded." % response['id'])
+          try:
+            upload_thumbnail(youtube, response[id], "THUMB/valhalla_yt_thumb.png")
+          except HttpError as e:
+            print("An HTTP error %d occurred:\n%s" % (e.resp.status, e.content))
+          else:
+            print("The custom thumbnail was successfully set.")
         else:
           exit("The upload failed with an unexpected response: %s" % response)
     except HttpError as e:
@@ -169,6 +173,12 @@ def resumable_upload(insert_request):
       sleep_seconds = random.random() * max_sleep
       print("Sleeping %f seconds and then retrying..." % sleep_seconds)
       time.sleep(sleep_seconds)
+
+def upload_thumbnail(youtube, video_id, file):
+  youtube.thumbnails().set(
+    videoId=video_id,
+    media_body=file
+  ).execute()
 
 if __name__ == '__main__':
   argparser.add_argument("--file", required=True, help="Video file to upload")
